@@ -1,0 +1,19 @@
+{
+    "name": "Uzi.Modeling.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:585bb0233fd769d418d95b5c7e8dbf97",
+        "GUID:060e504aac72a41459d7cfade188080d"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

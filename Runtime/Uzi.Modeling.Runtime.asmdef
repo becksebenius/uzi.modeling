@@ -1,0 +1,16 @@
+{
+    "name": "Uzi.Modeling.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:060e504aac72a41459d7cfade188080d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

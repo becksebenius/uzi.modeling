@@ -5,6 +5,11 @@ using Uzi.Serialization;
 
 namespace Uzi.Modeling.Runtime
 {
+    public static class ModelBaseUtility
+    {
+        public static readonly Action<Exception, object> DefaultExceptionCallback = (e, _) => Logging.Exception(LogCategory.UI, e);
+    }
+    
     [JSONSerializeNonPublic]
     public abstract class ModelBase<T> : IModel<T>, IModelInternal, IModelUpdatedCallbackInvoker, IJSONCustomDeserialization
         where T : ModelBase<T>
@@ -20,6 +25,8 @@ namespace Uzi.Modeling.Runtime
         [JSONIgnore] int lastReportedSelfChangeId;
         [JSONIgnore] int lastReportedChildChangeId;
         [JSONIgnore] List<IModelObserver<T>> observers;
+        [JSONIgnore] string typeNameCache;
+        string TypeName => typeNameCache ??= GetType().Name;
 
         void IModel<T>.RegisterObserver(IModelObserver<T> observer)
         {
@@ -72,7 +79,7 @@ namespace Uzi.Modeling.Runtime
             => InvokeModelUpdatedCallbacks(force, onExceptionCallback);
         public void InvokeModelUpdatedCallbacks(bool force, Action<Exception, object> onExceptionCallback = null)
         {
-            onExceptionCallback ??= (e, _) => Logging.Exception(LogCategory.UI, e);
+            onExceptionCallback ??= ModelBaseUtility.DefaultExceptionCallback;
             
             if(!force 
             && selfChangeId == lastReportedSelfChangeId
@@ -103,6 +110,7 @@ namespace Uzi.Modeling.Runtime
                     }
                 }
 
+                UnityEngine.Profiling.Profiler.BeginSample(TypeName);
                 for(int i = 0; i < observers.Count; ++i)
                 {
                     var observer = observers[i];
@@ -115,6 +123,7 @@ namespace Uzi.Modeling.Runtime
                         onExceptionCallback?.Invoke(e, observer);
                     }
                 }
+                UnityEngine.Profiling.Profiler.EndSample();
             }
             lastReportedChildChangeId = childChangeId;
             lastReportedSelfChangeId = selfChangeId;

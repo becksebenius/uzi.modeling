@@ -12,5 +12,6 @@ namespace Uzi.Modeling.Runtime
         void RemoveAt(int index);
         void Clear();
         void SetCount(int count);
+        new T this[int index] { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace Uzi.Modeling.Runtime
 {
     [JSONSerializeNonPublic]
     public class ModelList<T> : IModelList<T>, IModelInternal
-        where T : IModelUpdatedCallbackInvoker, new()
+        where T : ModelBase<T>, new()
     {
         [JSONIgnore]
         readonly IModelInternal @internal;
@@ -149,7 +149,23 @@ namespace Uzi.Modeling.Runtime
         public IEnumerator<T> GetEnumerator() => entries.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public int Count => entries.Count;
-        public T this[int index] => entries[index];
+
+        public T this[int index]
+        {
+            get => entries[index];
+            set
+            {
+                if (Count <= index)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                var current = entries[index];
+                current.TransferInternals(value);
+                entries[index] = value;
+            }
+        }
+        
         void IModelInternal.NotifyChildChanged() => ChildChanged();
 
         public static void Deserialize(ref JSONDeserializer deserializer, ModelList<T> target, string fieldName)

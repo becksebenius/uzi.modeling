@@ -9,6 +9,7 @@
         Float,
         Bool,
         Action,
+        Func,
         Enum,
         External
     }

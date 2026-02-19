@@ -425,6 +425,7 @@ static string SourceDirectory => {SourceDirectory};
                 else
                 {
                     if (property.Type != ModelPropertyType.Action
+                    && property.Type != ModelPropertyType.Func
                     && property.Type != ModelPropertyType.External)
                     {
                         jsonDeserializationTemplate = Templates.JsonDeserialization_Primitive;
@@ -876,6 +877,10 @@ static string SourceDirectory => {SourceDirectory};
                 {
                     return "Action";
                 }
+            }
+            else if (property.Type == ModelPropertyType.Func)
+            {
+                return "Func<" + property.ClassName + ">";
             }
             else if (property.Type == ModelPropertyType.Enum)
             {

@@ -98,7 +98,7 @@ namespace Uzi.Modeling.Editor
 
                 int memberTypeNameStart = cursor;
                 int memberTypeNameEnd = memberTypeNameStart;
-                SkipUntilWhitespace(ref memberTypeNameEnd);
+                SeekToEndOfMemberName(ref memberTypeNameEnd);
                 
                 int memberNameStart = memberTypeNameEnd + 1;
                 SkipWhitespace(ref memberNameStart);
@@ -222,19 +222,69 @@ namespace Uzi.Modeling.Editor
                     }
                     
                     var subType = memberTypeName.Substring(7, memberTypeName.Length - 8);
-                    if (typeMappings.TryGetValue(subType, out var mappedType))
+                    var subTypes = subType.Split(',');
+                    List<string> resolvedSubTypes = new();
+                    foreach (var subTypePart in subTypes)
                     {
-                        if (hasInnerBlock)
+                        if (typeMappings.TryGetValue(subTypePart.Trim(), out var resolvedSubTypePart))
                         {
-                            throw new Exception("Parsing error: Cannot define an inline block for an external type");
+                            if (hasInnerBlock)
+                            {
+                                throw new Exception(
+                                    "Parsing error: Cannot define an inline block for an external type");
+                            }
+                            resolvedSubTypes.Add(resolvedSubTypePart);
                         }
-                        subType = mappedType;
+                        else
+                        {
+                            resolvedSubTypes.Add(subTypePart.Trim());
+                        }
                     }
+                    subType = string.Join(",", resolvedSubTypes);
+                    
                     typeDefinition.Properties.Add(new ModelProperty
                     {
                         Name = memberName,
                         Attributes = attributes,
                         Type = ModelPropertyType.Action,
+                        ClassName = subType,
+                        InlineClassDefinition = hasInnerBlock ? ParseObjectType(innerBlockStart+1, innerBlockEnd) : null
+                    });
+                }
+                else if (memberTypeName.StartsWith("Func<"))
+                {
+                    if (memberTypeName[memberTypeName.Length - 1] != '>')
+                    {
+                        throw new Exception("Parsing error: Missing terminator on Func type name");
+                    }
+                    
+                    var subType = memberTypeName.Substring(5, memberTypeName.Length - 6);
+                    var subTypes = subType.Split(',');
+                    List<string> resolvedSubTypes = new();
+                    foreach (var subTypePart in subTypes)
+                    {
+                        if (typeMappings.TryGetValue(subTypePart.Trim(), out var resolvedSubTypePart))
+                        {
+                            if (hasInnerBlock)
+                            {
+                                throw new Exception(
+                                    "Parsing error: Cannot define an inline block for an external type");
+                            }
+                            resolvedSubTypes.Add(resolvedSubTypePart);
+                        }
+                        else
+                        {
+                            resolvedSubTypes.Add(subTypePart.Trim());
+                        }
+                    }
+                    
+                    subType = string.Join(",", resolvedSubTypes);
+                    
+                    typeDefinition.Properties.Add(new ModelProperty
+                    {
+                        Name = memberName,
+                        Attributes = attributes,
+                        Type = ModelPropertyType.Func,
                         ClassName = subType,
                         InlineClassDefinition = hasInnerBlock ? ParseObjectType(innerBlockStart+1, innerBlockEnd) : null
                     });
@@ -396,6 +446,25 @@ namespace Uzi.Modeling.Editor
             while (!IsWhitespace(input[cursor]))
             {
                 ++cursor;
+            }
+        }
+
+        void SeekToEndOfMemberName(ref int cursor)
+        {
+            while (!IsWhitespace(input[cursor]))
+            {
+                if (input[cursor] == '<')
+                {
+                    ++cursor;
+                    while (input[cursor] != '>')
+                    {
+                        ++cursor;
+                    }
+                }
+                else
+                {
+                    ++cursor;
+                }
             }
         }
 
